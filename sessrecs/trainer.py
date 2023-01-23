@@ -1,14 +1,17 @@
-from typing import Dict, Optional
+from typing import Optional
 from tqdm import tqdm
+from logging import Logger
+
 import numpy as np
-from torch import nn
-import torch
 np.random.seed(0)
 
 #from sessrecs.logger import LossLogger
 from sessrecs.evaluator import evaluate
-
 from torch.utils.data import DataLoader
+
+from sessrecs.models.basemodel import BaseRecommender
+
+import mlflow
     
 
 class BaseTrainer(object):
@@ -17,11 +20,9 @@ class BaseTrainer(object):
         self, 
         model,
         device,
-        logger,
-        losslogger=None
+        logger
     ):
         self.model= model
-        self.losslogger = losslogger
         self.logger = logger
         self.device = device
         
@@ -33,7 +34,7 @@ class BaseTrainer(object):
         test_data:Optional[DataLoader]=None,
         epochs:Optional[int]=100,
         valid_count:Optional[int]=1,
-        valid_target:Optional[str]="purchase_Hit@10",
+        valid_target:Optional[str]="purchase_Hit_at_10",
         save_path:Optional[str]=None
     ):
         loss_hist = []
@@ -55,21 +56,20 @@ class BaseTrainer(object):
                     
                 if (test_data is not None) and (count%valid_count == 0):
                     res, score, _ = evaluate(test_data, self.model, self.device, k=10, verbose=False)
-                    for col in score.index:
-                        result[col] = score[col]
                     valid_score = score[valid_target]
                     if (max_valid_score < valid_score) & (save_path is not None):
                         self.model.save(save_path)
                         max_valid_score=valid_score
-                    print(result)
+                    print(score)
                     
                     self.model.train()
                 
-            if self.losslogger is not None:
-                self.losslogger.write_loss(result, epoch)
+                    mlflow.log_metric(valid_target+"_on_epoch", valid_score, step=epoch)
+                
+                mlflow.log_metric("train_loss_on_epoch", np.mean(losses), step=epoch)
+
                 
             loss_hist += [np.mean(losses)]
             self.model.end_epochs()
             count += 1
-        return loss_hist
-    
+        return loss_hist, max_valid_score

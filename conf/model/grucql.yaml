@@ -1,0 +1,4 @@
+name: grucql
+hidden_dim: 100
+embed_dim: 100
+num_quantiles: 10

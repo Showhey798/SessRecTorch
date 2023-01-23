@@ -1,0 +1,6 @@
+epochs: 30
+batch_size: 256
+learning_rate: 0.01
+gamma: 0.5
+update_threshold: 100
+tau: 0.1

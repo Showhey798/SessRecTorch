@@ -1,0 +1,4 @@
+name: gruqrdqn
+hidden_dim: 200
+embed_dim: 100
+num_quantiles: 10

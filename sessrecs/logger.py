@@ -6,6 +6,9 @@ from logging import Logger, getLogger, StreamHandler, DEBUG, Formatter
 
 from csv import writer
 
+import mlflow
+from omegaconf import DictConfig, ListConfig
+
 def create_logger(
     name:Optional[str]=None
 ):
@@ -25,7 +28,7 @@ class ResultLogger(object):
         self.file_path = os.path.join(file_path, "result@%d.csv"%k)
         self.k = k
         if not os.path.exists(self.file_path):
-            self.write_line("Model", "ClickType", "Hit@%d"%k, "NDCG@%d"%k)
+            self.write_line("Model", "ClickType", "Hit_at_%d"%k, "NDCG_at_%d"%k)
         
     def write_line(self, model, clicktype, hit, ndcg):
         tocsv_list = [model, clicktype, hit, ndcg]
@@ -34,24 +37,17 @@ class ResultLogger(object):
             writer_obj.writerow(tocsv_list)
             f.close()
 
+def log_params_from_omegaconf_dict(params):
+    for param_name, element in params.items():
+        _explore_recursive(param_name, element)
 
-# class LossLogger(object):
-
-#     def __init__(
-#         self, 
-#         logdir:str,
-#         datasetname: str,
-#         modelname : str
-#     ):
-#         self.logdir = logdir
-
-#         self.summary_writer = tf.summary.create_file_writer(os.path.join(logdir, datasetname, modelname))
-    
-#     def write_loss(
-#         self,
-#         info:Dict[str, float],
-#         episode:int
-#     ):
-#         with self.summary_writer.as_default():
-#             for key in info.keys():
-#                 tf.summary.scalar(key, info[key], step=episode)
+def _explore_recursive(parent_name, element):
+    if isinstance(element, DictConfig):
+        for k, v in element.items():
+            if isinstance(v, DictConfig) or isinstance(v, ListConfig):
+                _explore_recursive(f'{parent_name}.{k}', v)
+            else:
+                mlflow.log_param(f'{parent_name}.{k}', v)
+    elif isinstance(element, ListConfig):
+        for i, v in enumerate(element):
+            mlflow.log_param(f'{parent_name}.{i}', v)

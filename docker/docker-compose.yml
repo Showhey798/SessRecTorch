@@ -1,0 +1,20 @@
+version: '3'
+services:
+  inoue:
+    container_name: master_inoue
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /home/inoue/work/program_016_inoue/master_programs:/home/inoue/work/
+      - /home/inoue/work/dataset:/home/inoue/work/dataset
+
+    ports:
+      - "20900:8888"
+      - "20901:5000"
+    tty: true
+    user: "20010:"
+    runtime: nvidia
+    environment:
+        - NVIDIA_VISIBLE_DEVICES=all
+        - NVIDIA_DRIVER_CAPABILITIES=all

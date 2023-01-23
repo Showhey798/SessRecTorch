@@ -1,0 +1,8 @@
+defaults:
+  - _self_
+  - model: gru4rec
+  - training: default
+dataset:
+  name: RC15
+  num_sessions: 20000
+  seq_len: 10

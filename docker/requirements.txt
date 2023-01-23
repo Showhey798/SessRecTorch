@@ -1,0 +1,23 @@
+numpy
+scipy
+matplotlib
+seaborn
+pandas
+tqdm
+
+# ノートブック関係
+jupyter
+jupyterlab
+jupyterthemes
+japanize-matplotlib
+
+# 深層学習モデル＋実験管理
+scikit-learn
+torch
+mlflow
+hydra-core
+
+# 強化学習関連
+cpprb
+gym
+recsim-ng

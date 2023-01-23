@@ -74,64 +74,6 @@ class MDPDataset(Dataset):
     
     def __getitem__(self, index):
         return tuple([self.data[key][index] for key in self.data.keys()])
-    
-def preprocess_data(datasetname="YahooR3", test_size=0.1, valid_size=0.1):
-    file_path = Path("%s/dataset/%s/"%(HOME, datasetname))
-    if datasetname == "YahooR3":
-        dtrain = pd.read_csv(file_path/"ydata-ymusic-rating-study-v1_0-train.txt", sep="\t", header=None)
-        dtest = pd.read_csv(file_path/"ydata-ymusic-rating-study-v1_0-test.txt", sep="\t", header=None)
-        dtrain.columns = ["userId", "itemId", "rating"]
-        dtest.columns = ["userId", "itemId", "rating"]
-        dtrain["userId"] -= 1
-        dtrain["itemId"] -= 1
-        dtest["userId"] -= 1
-        dtest["itemId"] -= 1
-        
-        dvalid, dtest = train_test_split(dtest, test_size=valid_size)
-        
-        num_users, num_items = dtrain["userId"].unique().shape[0], dtrain["itemId"].unique().shape[0]
-        
-        user_item_count = dtrain.groupby("userId")["itemId"].count() # ユーザーごとに観測したアイテム数
-        user_item_count = user_item_count.reset_index()
-        max_user = user_item_count["itemId"].max()
-        user_item_count["pscores"] = user_item_count["itemId"] / max_user
-        user_item_count.drop(["itemId"], axis=1, inplace=True)
-        dtrain = pd.merge(dtrain, user_item_count, on="userId", how="left")
-    
-    elif datasetname == "ml-100k":
-        dtrain = pd.read_csv(file_path/"rating.csv")
-        dtrain["userId"] -= 1
-        dtrain["itemId"] -= 1
-        dtrain, dtest = train_test_split(dtrain, test_size=valid_size)
-        
-        dvalid, dtest = train_test_split(dtest, test_size=valid_size)
-        num_users, num_items = dtrain["userId"].unique().shape[0], dtrain["itemId"].unique().shape[0]
-        
-        user_item_count = dtrain.groupby("userId")["itemId"].count() # ユーザーごとに観測したアイテム数
-        user_item_count = user_item_count.reset_index()
-        max_user = user_item_count["itemId"].max()
-        user_item_count["pscores"] = user_item_count["itemId"] / max_user
-        user_item_count.drop(["itemId"], axis=1, inplace=True)
-        dtrain = pd.merge(dtrain, user_item_count, on="userId", how="left")
-        
-    elif datasetname == "ml-1m":
-        dtrain = pd.read_csv(file_path/"ratings.csv", header=None)
-        dtrain.columns = ["userId", "itemId", "rating", "timestamp"]
-        dtrain["userId"] -= 1
-        dtrain["itemId"] -= 1
-        dtrain, dtest = train_test_split(dtrain, test_size=valid_size)
-        
-        dvalid, dtest = train_test_split(dtest, test_size=valid_size)
-        num_users, num_items = dtrain["userId"].unique().shape[0], dtrain["itemId"].unique().shape[0]
-        
-        user_item_count = dtrain.groupby("userId")["itemId"].count() # ユーザーごとに観測したアイテム数
-        user_item_count = user_item_count.reset_index()
-        max_user = user_item_count["itemId"].max()
-        user_item_count["pscores"] = user_item_count["itemId"] / max_user
-        user_item_count.drop(["itemId"], axis=1, inplace=True)
-        dtrain = pd.merge(dtrain, user_item_count, on="userId", how="left")
-
-    return dtrain, dvalid, dtest, num_users, num_items
 
 
 def delete_sess_and_items(

@@ -61,16 +61,16 @@ def evaluate(
         recs = np.hstack([np.expand_dims(sess, -1), np.expand_dims(action.to("cpu").detach().numpy().copy(), -1), state.to("cpu").detach().numpy().copy(), pred.to("cpu").detach().numpy().copy()])
         recommendations += [recs]
         result = pd.DataFrame([sess, hit, ndcg, reward]).T
-        result.columns = ["sessionId", "Hit@%d"%k, "NDCG@%d"%k, "Reward"]
+        result.columns = ["sessionId", "Hit_at_%d"%k, "NDCG_at_%d"%k, "Reward"]
         res = pd.concat([res, result], axis=0)
     
-    scores = pd.Series()
+    scores = []
     reward_name = res["Reward"].unique()
     reward_name = {reward_name.max():"purchase", reward_name.min():"click"}
     for r in res["Reward"].unique():
-        score = res[res["Reward"] == r][["sessionId", "Hit@%d"%k, "NDCG@%d"%k]].groupby(["sessionId"]).sum().sum() / len(res[res["Reward"] == r])
-        score.index = [reward_name[r] + "_"+ind for ind in score.index]
-        scores = pd.concat([scores, score])   
-        
+        score = res[res["Reward"] == r][["sessionId", "Hit_at_%d"%k, "NDCG_at_%d"%k]].groupby(["sessionId"]).sum().sum() / len(res[res["Reward"] == r])
+        score.index = [reward_name[r]+ "_" + ind for ind in score.index]
+        scores += [score]
+    scores = pd.concat(scores)
     recommendations = np.concatenate(recommendations, axis=0)     
     return res, scores, recommendations

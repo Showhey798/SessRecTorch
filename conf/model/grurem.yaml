@@ -1,0 +1,4 @@
+name: grurem
+hidden_dim: 200
+embed_dim: 100
+k: 10
